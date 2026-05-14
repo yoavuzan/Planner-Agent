@@ -28,8 +28,8 @@ def create_graph(planner_model, executor_model, tools, checkpointer=None):
         "executor",
         exists_action,
         {
-            True: "action",
-            False: "human_review"
+            "action": "action",
+            "human_review": "human_review"
         }
     )
 

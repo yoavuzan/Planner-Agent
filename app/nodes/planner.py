@@ -1,6 +1,5 @@
-import json
-import re
 from langchain_core.messages import SystemMessage
+from .utils import parse_llm_list
 
 def planner_node(state, model):
     user_request = state["messages"][-1].content
@@ -10,29 +9,21 @@ def planner_node(state, model):
     User request: {user_request}
 
     The plan should:
-    1. Be brief and actionable (maximum 3-5 steps).
-    2. Focus only on the direct actions needed (like creating files, writing code).
-    3. Avoid generic steps like "understand requirements" or "research syntax".
+    1. Be brief and actionable (maximum 2-3 steps).
+    2. Focus only on direct actions (creating files, writing code).
+    3. If testing is required, specify a separate test file (e.g., "Create test_add.py").
+    4. Avoid generic steps like "understand requirements" or "research syntax".
 
-    Return the plan as a Python list of strings.
-    Example: ["Create script.py with hello world code", "Verify the file exists"]
-    ONLY return the list, no other text.
+    FORMAT: You MUST return a Python-style list of strings.
+    Example: ["Create add.py with add function", "Create test_add.py to test add function"]
+    Do NOT include any other text or markdown.
     """
 
     response = model.invoke([
         SystemMessage(content=prompt)
     ])
 
-    # Try to extract list using regex if eval fails or to be safe
-    content = response.content.strip()
-    match = re.search(r'\[.*\]', content, re.DOTALL)
-    if match:
-        try:
-            plan = eval(match.group(0))
-        except:
-            plan = [content] # Fallback
-    else:
-        plan = [content]
+    plan = parse_llm_list(response.content)
 
     return {
         "plan": plan,

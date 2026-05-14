@@ -48,6 +48,16 @@ graph TD
 4.  **Human Review**: Uses `interrupt()` to pause and wait for user feedback.
 5.  **Complete Task**: Moves the finished task to the completed list and updates the plan.
 
+## 🧰 Tools
+
+The agent has access to a variety of filesystem and refactoring tools:
+- **`write_file`**: Create a file or append to it if it already exists.
+- **`read_file`**: Read the contents of a file.
+- **`list_files`**: List files in the workspace.
+- **`search_replace`**: Perform targeted text replacement within a file.
+- **`rename_file`**: Move or rename a file.
+- **`delete_file`**: Remove a file from the workspace.
+
 ## 🛠️ Setup
 
 1.  **Install Dependencies**:

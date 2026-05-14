@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
-from app.tools.file_tools import write_file, read_file, list_files
+from app.tools.file_tools import write_file, read_file, list_files, search_replace, delete_file, rename_file
 
 load_dotenv()
 
@@ -16,7 +16,7 @@ def get_models():
     )
     
     # Executor Model: qwen2.5:3b with tools
-    tools_list = [write_file, read_file, list_files]
+    tools_list = [write_file, read_file, list_files, search_replace, delete_file, rename_file]
     executor_model = ChatOllama(
         model="qwen2.5:3b",
         temperature=0,
