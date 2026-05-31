@@ -1,9 +1,9 @@
 from IPython.display import Image, display
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt
 from rich.markdown import Markdown
 from rich import print as rprint
+import questionary
 
 console = Console()
 
@@ -70,10 +70,20 @@ def handle_interrupt(compiled_graph, config):
             ))
             
             options = interrupt_info.get('options', ['approve', 'retry', 'end'])
-            user_decision = Prompt.ask(
-                "\n[bold green]What should I do?[/bold green]",
+            
+            user_decision = questionary.select(
+                "What should I do?",
                 choices=options,
                 default="approve"
-            )
+            ).ask()
+            
+            if user_decision == "retry":
+                explanation = questionary.text(
+                    "Explain what went wrong (optional):",
+                    default=""
+                ).ask()
+                if explanation:
+                    return f"retry: {explanation}"
+            
             return user_decision.lower()
     return None

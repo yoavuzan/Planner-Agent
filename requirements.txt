@@ -1,6 +1,10 @@
 langchain
 langchain-ollama
+langchain-openai
 langgraph
+langgraph-checkpoint-sqlite
 python-dotenv
 ipython
 rich
+questionary
+streamlit

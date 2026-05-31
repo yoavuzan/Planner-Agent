@@ -18,6 +18,9 @@ env/
 # Graph visualization
 graph.png
 
+# Persistent checkpointer
+checkpoints.db
+
 # Agent workspace (where the agent writes files)
 workspace/
 
