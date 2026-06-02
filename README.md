@@ -1,18 +1,19 @@
-# Planner Agent with LangGraph & Ollama
+# 🤖 Planner Agent with LangGraph & Ollama
 
-This is a powerful **Planner-Executor** agent built with **LangGraph** and **Ollama**. It breaks down complex user requests into actionable tasks, executes them using tools, and includes a human-in-the-loop review step for verification.
+A sophisticated **Planner-Executor** agent framework built with **LangGraph** and **Ollama**. This agent decomposes complex natural language requests into structured plans, executes them using specialized tools, and maintains a robust human-in-the-loop validation cycle.
 
-## 🚀 Features
+## ✨ Features
 
-- **Planner-Executor Architecture**: Separates task planning from execution for better reliability.
-- **Human-in-the-loop**: Pauses for user approval after every task.
-- **Ollama Integration**: Uses `phi3:mini` for planning and `qwen2.5:3b` for tool execution.
-- **Rich CLI**: A beautiful terminal interface using the `rich` library.
-- **State Persistence**: Uses `MemorySaver` to maintain thread state and handle interrupts.
+- **Dual Interfaces**: Choose between a high-fidelity **Rich CLI** or a modern **Streamlit GUI**.
+- **Planner-Executor Architecture**: Decouples logic for higher reliability and better reasoning.
+- **Thread Persistence**: Seamlessly save, resume, or delete conversation threads using **SQLite**.
+- **Human-in-the-Loop**: Integrated `interrupt()` points for task verification and feedback.
+- **Self-Correction**: Built-in error handling nodes to manage and recover from tool failures.
+- **Ollama Powered**: Optimized for local models like `phi3:mini` (Planning) and `qwen2.5:3b` (Execution).
 
-## 🏗️ Graph Schema
+## 🏗️ Architecture
 
-The agent operates as a state machine with a structured loop and human-in-the-loop validation.
+The agent operates as a state machine with structured loops and conditional routing.
 
 ```mermaid
 graph TD
@@ -25,11 +26,13 @@ graph TD
     Start([Start]):::startEnd --> Planner[Planner Node]:::process
     Planner --> Executor[Executor Node]:::process
     
-    Executor --> ActionCheck{Has Tool Call?}:::decision
-    ActionCheck -- Yes --> Action[Action Node]:::process
-    Action --> Executor
+    Executor --> ActionCheck{Route To?}:::decision
+    ActionCheck -- Tool Call --> Action[Action Node]:::process
+    ActionCheck -- Error --> ErrorH[Error Handler]:::process
+    ActionCheck -- Complete --> HumanReview[Human Review]:::interrupt
     
-    ActionCheck -- No --> HumanReview[Human Review]:::interrupt
+    Action --> Executor
+    ErrorH --> HumanReview
     
     HumanReview --> ReviewDecision{User Decision}:::decision
     ReviewDecision -- Approve --> CompleteTask[Complete Task]:::process
@@ -41,52 +44,68 @@ graph TD
     ContinueCheck -- No --> End
 ```
 
-### Nodes:
-1.  **Planner**: Analyzes user input and generates a concise 3-5 step plan.
-2.  **Executor**: Focuses on the current task, generating tool calls or responses.
-3.  **Action**: Executes filesystem tools (`write_file`, `read_file`, `list_files`).
-4.  **Human Review**: Uses `interrupt()` to pause and wait for user feedback.
-5.  **Complete Task**: Moves the finished task to the completed list and updates the plan.
+### Core Nodes:
+1.  **Planner**: Uses a reasoning model to generate a 3-5 step execution strategy.
+2.  **Executor**: Focuses on the current task, generating tool calls or final responses.
+3.  **Action**: Executes filesystem operations (`write_file`, `read_file`, etc.).
+4.  **Error Handler**: Intercepts tool execution failures and prepares them for review.
+5.  **Human Review**: Pauses execution to allow user approval, retry with feedback, or termination.
+6.  **Complete Task**: Updates the plan and state after a successful task completion.
 
-## 🧰 Tools
+## 🧰 Capabilities (Tools)
 
-The agent has access to a variety of filesystem and refactoring tools:
-- **`write_file`**: Create a file or append to it if it already exists.
-- **`read_file`**: Read the contents of a file.
-- **`list_files`**: List files in the workspace.
-- **`search_replace`**: Perform targeted text replacement within a file.
-- **`rename_file`**: Move or rename a file.
-- **`delete_file`**: Remove a file from the workspace.
+The agent is equipped with a suite of workspace management tools:
+- `write_file`: Create or update files with intelligent content management.
+- `read_file`: Retrieve content from specific files.
+- `list_files`: Map out the workspace structure.
+- `search_replace`: Precise, targeted code refactoring.
+- `delete_file` & `rename_file`: File system management.
 
-## 🛠️ Setup
+## 🛠️ Installation
 
-1.  **Install Dependencies**:
+1.  **Clone & Navigate**:
+    ```bash
+    cd planner-agent
+    ```
+
+2.  **Install Dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
 
-2.  **Configure Environment**:
-    Create a `.env` file in the `planner-agent` directory:
+3.  **Configure Environment**:
+    Create a `.env` file:
     ```env
     OLLAMA_BASE_URL=http://localhost:11434
     ```
 
-3.  **Run Ollama**:
-    Ensure Ollama is running and you have the models:
+4.  **Pull Models**:
     ```bash
     ollama pull phi3:mini
     ollama pull qwen2.5:3b
     ```
 
-## 🏃 Usage
+## 🚀 Usage
 
-Run the agent from the project root:
+Launch the entry point to choose your preferred interface:
 
 ```bash
-python -m planner-agent.main
+python main.py
 ```
 
-### Human Review Options:
-- **approve**: Mark the task as done and move to the next.
-- **retry**: Send the task back to the executor (useful if the result wasn't quite right).
-- **end**: Stop the entire process immediately.
+### 💻 CLI Interface
+- **Thread Management**: Start new sessions or resume existing ones by ID.
+- **Rich Visualization**: Beautifully formatted Markdown and panel-based outputs.
+- **Interactive Prompts**: Powered by `questionary` for a smooth terminal experience.
+
+### 🌐 GUI Interface (Streamlit)
+- **Visual Chat**: Standard chat interface for better readability.
+- **Sidebar Controls**: Easy thread switching and deletion.
+- **Live Status**: Real-time updates on which node is currently processing.
+
+## 🧵 Thread Management
+
+All interactions are stored in `checkpoints.db`. This allows you to:
+- **Resume**: Pick up exactly where you left off in a previous session.
+- **Audit**: Review the history of tool calls and agent reasoning.
+- **Clean**: Delete old or irrelevant threads via the UI or CLI.
